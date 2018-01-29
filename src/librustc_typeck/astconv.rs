@@ -19,7 +19,7 @@ use hir::def::Def;
 use hir::def_id::DefId;
 use middle::resolve_lifetime as rl;
 use namespace::Namespace;
-use rustc::ty::subst::{Subst, Substs};
+use rustc::ty::subst::{Kind, Subst, Substs};
 use rustc::traits;
 use rustc::ty::{self, RegionKind, Ty, TyCtxt, ToPredicate, TypeFoldable};
 use rustc::ty::wf::object_region_bounds;
