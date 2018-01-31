@@ -232,7 +232,7 @@ type CombineMap<'tcx> = FxHashMap<TwoRegions<'tcx>, RegionVid>;
 
 pub struct RegionSnapshot {
     length: usize,
-    region_snapshot: unify::Snapshot<ty::RegionVid>,
+    region_snapshot: ut::Snapshot<ut::InPlace<ty::RegionVid>>,
     skolemization_count: u32,
 }
 
