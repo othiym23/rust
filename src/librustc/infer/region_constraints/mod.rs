@@ -18,7 +18,7 @@ use super::unify_key;
 
 use rustc_data_structures::indexed_vec::{IndexVec, Idx};
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
-use rustc_data_structures::unify::{self, UnificationTable};
+use rustc_data_structures::unify as ut;
 use ty::{self, Ty, TyCtxt};
 use ty::{Region, RegionVid};
 use ty::ReStatic;
@@ -73,7 +73,7 @@ pub struct RegionConstraintCollector<'tcx> {
     /// is iterating to a fixed point, because otherwise we sometimes
     /// would wind up with a fresh stream of region variables that
     /// have been equated but appear distinct.
-    unification_table: UnificationTable<ty::RegionVid>,
+    unification_table: ut::UnificationTable<ut::InPlace<ty::RegionVid>>,
 }
 
 pub type VarOrigins = IndexVec<RegionVid, RegionVariableOrigin>;
@@ -232,7 +232,7 @@ type CombineMap<'tcx> = FxHashMap<TwoRegions<'tcx>, RegionVid>;
 
 pub struct RegionSnapshot {
     length: usize,
-    region_snapshot: unify::Snapshot<ty::RegionVid>,
+    region_snapshot: ut::Snapshot<ut::InPlace<ty::RegionVid>>,
     skolemization_count: u32,
 }
 
@@ -280,7 +280,7 @@ impl<'tcx> RegionConstraintCollector<'tcx> {
             skolemization_count: 0,
             bound_count: 0,
             undo_log: Vec::new(),
-            unification_table: UnificationTable::new(),
+            unification_table: ut::UnificationTable::new(),
         }
     }
 
@@ -338,7 +338,7 @@ impl<'tcx> RegionConstraintCollector<'tcx> {
         // un-unified" state. Note that when we unify `a` and `b`, we
         // also insert `a <= b` and a `b <= a` edges, so the
         // `RegionConstraintData` contains the relationship here.
-        *unification_table = UnificationTable::new();
+        *unification_table = ut::UnificationTable::new();
         for vid in var_origins.indices() {
             unification_table.new_key(unify_key::RegionVidKey { min_vid: vid });
         }
@@ -772,7 +772,7 @@ impl<'tcx> RegionConstraintCollector<'tcx> {
         tcx: TyCtxt<'_, '_, 'tcx>,
         rid: RegionVid,
     ) -> ty::Region<'tcx> {
-        let vid = self.unification_table.find_value(rid).min_vid;
+        let vid = self.unification_table.probe_value(rid).min_vid;
         tcx.mk_region(ty::ReVar(vid))
     }
 
